@@ -1,7 +1,8 @@
 package main
 
 import (
-	pb "github.com/wule61/grpc/grpcusage"
+	pb "github.com/wule61/grpc/proto"
+	"google.golang.org/grpc/credentials"
 
 	"golang.org/x/net/context"
 
@@ -16,11 +17,11 @@ const (
 	port = ":50051"
 )
 
-type Server struct{}
+type SearchService struct{}
 
-func (s *Server) SayHello(ctx context.Context, in *pb.HelloRequest) (*pb.HelloReply, error) {
-	return &pb.HelloReply{
-		Message: "hello " + in.Name,
+func (s *SearchService) Search(ctx context.Context, in *pb.SearchRequest) (*pb.SearchResponse, error) {
+	return &pb.SearchResponse{
+		Response: "hello " + in.Requets,
 	}, nil
 }
 
@@ -29,8 +30,12 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	c, err := credentials.NewServerTLSFromFile("./conf/server.pem", "./conf/server.key")
+	if err != nil {
+		log.Fatal(err)
+	}
 	fmt.Println("grpc server listening at: 50051 port")
-	server := grpc.NewServer()
-	pb.RegisterHelloServer(server, &Server{})
+	server := grpc.NewServer(grpc.Creds(c))
+	pb.RegisterSearchServiceServer(server, &SearchService{})
 	server.Serve(conn)
 }
